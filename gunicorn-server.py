@@ -1,7 +1,7 @@
+import Queue
+import datetime
 import threading
 import time
-import datetime
-import Queue
 
 import selector # https://github.com/lukearno/selector/
 
