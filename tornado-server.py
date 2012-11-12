@@ -1,42 +1,49 @@
 import datetime
+import functools
+import socket
 import threading
 import time
 
 import tornado.ioloop
 import tornado.web
 
-listeners = []
-def event_source():
-  def wrap_callback(callback, data):
-    def implementation():
+class number_handler(tornado.web.RequestHandler):
+  """Handles each request for a number."""
+  callbacks = set()
+  @staticmethod
+  def message(data):
+    """Called whenever a new number has been received."""
+    for callback in number_handler.callbacks.copy():
       callback(data)
-    return implementation
-  while True:
-    if len(listeners):
-      data = datetime.datetime.now()
-      for listener in listeners:
-        tornado.ioloop.IOLoop.instance().add_callback(wrap_callback(listener, data))
-    time.sleep(5)
 
-thread = threading.Thread(target=event_source)
-thread.daemon = True
-thread.start()
-
-class MainHandler(tornado.web.RequestHandler):
   @tornado.web.asynchronous
   def get(self):
-    listeners.append(self.result)
+    """Called when a client requests a number."""
+    number_handler.callbacks.add(self.get_result)
 
-  def result(self, data):
-    listeners.remove(self.result)
+  def get_result(self, data):
+    """Called when a new number has been received."""
+    number_handler.callbacks.remove(self.get_result)
     self.write(str(data))
     self.finish()
 
 application = tornado.web.Application([
-  (r"/", MainHandler)
-])
+  (r"/", number_handler)
+  ])
+
+def udp_source():
+  """Listens for new numbers."""
+  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+  s.bind(("", 51423))
+  while True:
+    data = s.recv(4096)
+    tornado.ioloop.IOLoop.instance().add_callback(functools.partial(number_handler.message, data))
 
 if __name__ == "__main__":
-    application.listen(8888)
-    tornado.ioloop.IOLoop.instance().start()
+  udp_thread = threading.Thread(target=udp_source)
+  udp_thread.daemon = True
+  udp_thread.start()
+
+  application.listen(8888)
+  tornado.ioloop.IOLoop.instance().start()
 
