@@ -7,12 +7,15 @@ import tornado.web
 
 listeners = []
 def event_source():
-  global listeners
+  def wrap_callback(callback, data):
+    def implementation():
+      callback(data)
+    return implementation
   while True:
     if len(listeners):
       data = datetime.datetime.now()
       for listener in listeners:
-        listener(data)
+        tornado.ioloop.IOLoop.instance().add_callback(wrap_callback(listener, data))
     time.sleep(5)
 
 thread = threading.Thread(target=event_source)
