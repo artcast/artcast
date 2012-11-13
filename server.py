@@ -39,7 +39,8 @@ class number_handler(handler):
     if self.key != key:
       return
     number_handler.callbacks.remove(self.get_result)
-    self.write(str(data))
+    self.set_header("Content-Type", "application/json")
+    self.write(json.dumps(data))
     self.finish()
 
 application = tornado.web.Application(
