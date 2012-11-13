@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{key}} | Art Numbers</title>
+    <script type="text/javascript" src="{{ static_url("js/jquery-1.8.2.min.js") }}"></script>
+  </head>
+  <body>
+    <h1>Art Number: {{key}}</h1>
+    <dt>Value</dt>
+    <dd id="value"></dd>
+    <script type="text/javascript">
+      $(document).ready(function()
+      {
+        function get_value()
+        {
+          $.ajax(
+          {
+            accept: "application/json",
+            type: "GET",
+            url: "/numbers/{{key}}",
+            success: function(data)
+            {
+              $("#value").text(data);
+              get_value();
+            },
+            error: function(request, status, reason_phrase)
+            {
+              $("#value").text("Error: " + reason_phrase);
+              window.setTimeout(get_value, 5000);
+            }
+          });
+        }
+
+        get_value();
+      });
+    </script>
+  </body>
+</html>
