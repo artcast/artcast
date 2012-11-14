@@ -1,7 +1,8 @@
 Overview
 ========
 
-This is the Artcast server: a special-purpose web server that is dedicated to the task of delivering time series data for use in:
+This is the Artcast server: a special-purpose web server that is dedicated to the task of
+delivering time series data for use in:
 
 * Interactive artwork
 * Kinematic sculpture
@@ -11,5 +12,14 @@ This is the Artcast server: a special-purpose web server that is dedicated to th
 * Whatever you dream up!
 
 Artcast is designed to deliver data in a way that is simple, efficient, and low-latency.
+
+Design
+======
+
+There are three components in an Artcast system:
+
+* Server
+* Sources
+* Clients
 
 
