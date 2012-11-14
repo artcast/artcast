@@ -4,6 +4,7 @@ import os
 import socket
 import threading
 
+import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
@@ -56,6 +57,7 @@ if __name__ == "__main__":
   parser = optparse.OptionParser()
   parser.add_option("--client-port", type="int", default=8888, help="Client request input port.  Default: %default")
   parser.add_option("--source-port", type="int", default=51423, help="Source data port.  Default: %default")
+  parser.add_option("--uid", type="int", default=None, help="Drop privileges to uid.  Default: %default")
   options, arguments = parser.parse_args()
 
   udp_thread = threading.Thread(target=udp_source, kwargs={"port" : options.source_port})
@@ -70,6 +72,11 @@ if __name__ == "__main__":
     static_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "content"),
     static_url_prefix = "/content/"
     )
-  application.listen(options.client_port)
+
+  server = tornado.httpserver.HTTPServer(application)
+  server.bind(options.client_port)
+  if options.uid is not None:
+    os.setuid(options.uid)
+  server.start(1)
   tornado.ioloop.IOLoop.instance().start()
 
