@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>{{key}} | Art Numbers</title>
+    <title>{{key}} | Artcast</title>
     <script type="text/javascript" src="{{ static_url("js/jquery-1.8.2.min.js") }}"></script>
   </head>
   <body>
-    <h1>Art Number: {{key}}</h1>
+    <h1>Artcast: {{key}}</h1>
     <dt>Value</dt>
     <dd id="value"></dd>
     <script type="text/javascript">
@@ -17,7 +17,7 @@
           {
             accept: "application/json",
             type: "GET",
-            url: "/numbers/{{key}}",
+            url: "/artcasts/{{key}}",
             success: function(data)
             {
               $("#value").text(data);
