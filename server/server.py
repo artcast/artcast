@@ -43,28 +43,33 @@ class artcast_handler(handler):
     self.write(json.dumps(data))
     self.finish()
 
-application = tornado.web.Application(
-  [
-  (r"/artcasts/(.*)", artcast_handler)
-  ],
-  debug = True,
-  static_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "content"),
-  static_url_prefix = "/content/"
-  )
-
-def udp_source():
+def udp_source(port):
   """Listens for new artcast values."""
   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-  s.bind(("", 51423))
+  s.bind(("", port))
   while True:
     key, data = json.loads(s.recv(4096))
     tornado.ioloop.IOLoop.instance().add_callback(functools.partial(artcast_handler.message, key, data))
 
 if __name__ == "__main__":
-  udp_thread = threading.Thread(target=udp_source)
+  import optparse
+  parser = optparse.OptionParser()
+  parser.add_option("--client-port", type="int", default=8888, help="Client request input port.  Default: %default")
+  parser.add_option("--source-port", type="int", default=51423, help="Source data port.  Default: %default")
+  options, arguments = parser.parse_args()
+
+  udp_thread = threading.Thread(target=udp_source, kwargs={"port" : options.source_port})
   udp_thread.daemon = True
   udp_thread.start()
 
-  application.listen(80)
+  application = tornado.web.Application(
+    [
+    (r"/artcasts/(.*)", artcast_handler)
+    ],
+    debug = True,
+    static_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "content"),
+    static_url_prefix = "/content/"
+    )
+  application.listen(options.client_port)
   tornado.ioloop.IOLoop.instance().start()
 
