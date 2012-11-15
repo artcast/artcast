@@ -79,6 +79,7 @@ if __name__ == "__main__":
   import optparse
   parser = optparse.OptionParser()
   parser.add_option("--client-port", type="int", default=8888, help="Client request input port.  Default: %default")
+  parser.add_option("--pidfile", default=None, help="PID file.  Default: %default")
   parser.add_option("--source-group", default="224.1.1.1", help="Multicast group for receiving source messages.  Default: %default")
   parser.add_option("--source-port", type="int", default=5007, help="Multicast port for receiving source messages.  Default: %default")
   parser.add_option("--uid", type="int", default=None, help="Drop privileges to uid.  Default: %default")
@@ -107,5 +108,12 @@ if __name__ == "__main__":
   if options.uid is not None:
     os.setuid(options.uid)
   server.start(1)
-  tornado.ioloop.IOLoop.instance().start()
+  try:
+    if options.pidfile:
+      with open(options.pidfile, "wb") as pidfile:
+        pidfile.write(str(os.getpid()))
+    tornado.ioloop.IOLoop.instance().start()
+  finally:
+    if options.pidfile:
+      os.unlink(options.pidfile)
 
