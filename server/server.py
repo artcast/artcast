@@ -65,7 +65,10 @@ def udp_source(group, port, verbose):
   """Listens for new artcast values."""
   sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
   sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-  sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+  try:
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+  except:
+    pass
   sock.bind(("", port))
   mreq = struct.pack("4sl", socket.inet_aton(group), socket.INADDR_ANY)
   sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
@@ -79,6 +82,8 @@ if __name__ == "__main__":
   import optparse
   parser = optparse.OptionParser()
   parser.add_option("--client-port", type="int", default=8888, help="Client request input port.  Default: %default")
+  parser.add_option("--daemonize", default=False, action="store_true", help="Daemonize the server.")
+  parser.add_option("--logfile", default=None, help="Log file.  Default: %default")
   parser.add_option("--pidfile", default=None, help="PID file.  Default: %default")
   parser.add_option("--source-group", default="224.1.1.1", help="Multicast group for receiving source messages.  Default: %default")
   parser.add_option("--source-port", type="int", default=5007, help="Multicast port for receiving source messages.  Default: %default")
@@ -89,6 +94,12 @@ if __name__ == "__main__":
   if options.verbose:
     for key in sorted(options.__dict__.keys()):
       sys.stderr.write("%s : %s\n" % (key, options.__dict__[key]))
+
+  if options.daemonize:
+    import daemon
+    log = open(options.logfile, 'a+') if options.logfile is not None else sys.stderr
+    context = daemon.DaemonContext(stdout=log, stderr=log,  working_directory='.')
+    context.open()
 
   udp_thread = threading.Thread(target=udp_source, kwargs={"group" : options.source_group, "port" : options.source_port, "verbose" : options.verbose})
   udp_thread.daemon = True
@@ -112,6 +123,7 @@ if __name__ == "__main__":
     if options.pidfile:
       with open(options.pidfile, "wb") as pidfile:
         pidfile.write(str(os.getpid()))
+
     tornado.ioloop.IOLoop.instance().start()
   finally:
     if options.pidfile:
