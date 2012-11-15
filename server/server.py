@@ -12,11 +12,22 @@ import tornado.web
 
 class handler(tornado.web.RequestHandler):
   """Add some useful functionality common to all handlers."""
-  def accept(self, *mime_types):
-    for mime_type in mime_types:
-      for element in self.request.headers["accept"].split(","):
-        if mime_type == element.split(";")[0]:
-          return mime_type
+  def accept(self, *server_types):
+    # First, sort the client's accepted MIME types in order of preference ...
+    client_types = [mime_type.split(";") for mime_type in self.request.headers["accept"].split(",")]
+    client_types = [(type[0], float(type[1].split("=")[1]) if len(type) > 1 else 1.0) for type in client_types]
+    client_types = sorted(client_types, key=lambda x: x[1], reverse=True)
+
+    # Iterate over the server's accepted MIME types in order of preference ...
+    for client_type, quality in client_types:
+      for server_type in server_types:
+        if client_type == server_type:
+          return server_type
+        if client_type == "*/*":
+          return server_type
+        if client_type[-2:] == "/*" and client_type.split("/")[0] == server_type.split("/")[0]:
+          return server_type
+    raise tornado.web.HTTPError(406, "Accepted MIME types are: %s" % server_types)
 
 class artcast_handler(handler):
   """Handles each request for an artcast."""
@@ -30,7 +41,8 @@ class artcast_handler(handler):
   @tornado.web.asynchronous
   def get(self, key):
     """Called when a client requests an artcast."""
-    if self.accept("application/json", "text/html") == "text/html":
+    self.accepted = self.accept("text/plain", "application/json", "text/html")
+    if self.accepted == "text/html":
       self.render("artcast.html", key=key)
       return
 
@@ -42,8 +54,11 @@ class artcast_handler(handler):
     if self.key != key:
       return
     artcast_handler.callbacks.remove(self.get_result)
-    self.set_header("Content-Type", "application/json")
-    self.write(json.dumps(data))
+    if self.accepted == "application/json":
+      self.write(json.dumps(data))
+    elif self.accepted == "text/plain":
+      self.write(str(data))
+    self.set_header("Content-Type", self.accepted)
     self.finish()
 
 def udp_source(group, port, verbose):
