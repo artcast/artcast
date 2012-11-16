@@ -16,23 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with Artcast.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
-import optparse
-import socket
-import sys
+import artcast.source
 
-parser = optparse.OptionParser()
-parser.add_option("--group", default="224.1.1.1", help="Multicast group for sending source messages.  Default: %default")
-parser.add_option("--port", type="int", default=5007, help="Multicast port for sending source messages.  Default: %default")
-parser.add_option("--ttl", type="int", default=1, help="Multicast TTL.  Default: %default")
-parser.add_option("--verbose", default=False, action="store_true",  help="Enable debugging output.")
-options, arguments = parser.parse_args()
+def send_arguments():
+  artcast.source.send(artcast.source.arguments[0], artcast.source.arguments[1])
 
-if options.verbose:
-  for key in sorted(options.__dict__.keys()):
-    sys.stderr.write("%s : %s\n" % (key, options.__dict__[key]))
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, options.ttl)
-sock.sendto(json.dumps((sys.argv[1], sys.argv[2])), (options.group, options.port))
+if __name__ == "__main__":
+  artcast.source.add(send_arguments)
+  artcast.source.run()
 
