@@ -1,0 +1,5 @@
+URI                         HTTP METHOD  DESCRIPTION                                                        RETURNS
+--------------------------- ------------ ------------------------------------------------------------------ ---------------------------------------
+/artcasts                   GET          Return a dynamically-generated list of available artcasts.         text/html, application/json
+/artcasts/:key              GET          Return an artcast value.                                           text/html, application/json, text/plain
+
