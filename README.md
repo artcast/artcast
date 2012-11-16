@@ -1,5 +1,6 @@
 Overview
 ========
+Welcome to ArtCast - a special service of the ArtCastProject.  Bringing attention to important data, information and knowledge of importance to everyone.
 
 This is the Artcast server: a special-purpose web server that is dedicated to the task of
 delivering time series data for use in:
