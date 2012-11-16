@@ -46,11 +46,12 @@ Server
 
 The Artcast server is an HTTP server written in Python using the Tornado web framework.
 A client requests the next value from an Artcast source by performing an HTTP GET request
-to the URL /artcasts/*key*.  A response to the request is returned by the server as soon
-as a datum with a matching *key* is received from an Artcast source.  Once a client has
+to the URL /artcasts/key.  A response to the request is returned by the server as soon
+as a datum with a matching key is received from an Artcast source.  Once a client has
 received the datum it can make a request for the next value.  Thus, Artcast clients use
 long-polling to receive Artcast values as soon as they're available with a minimum of
 latency and network traffic.
 
 Clients
 -------
+
