@@ -5,7 +5,7 @@ This is the Artcast server: a special-purpose web server that is dedicated to th
 delivering time series data for use in:
 
 * Interactive artwork
-* Kinematic sculpture
+* Kinetic sculpture
 * Maker projects
 * Cool hacks
 * School projects
