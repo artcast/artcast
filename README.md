@@ -32,8 +32,20 @@ transmitted to one-or-more Artcast servers using multicast UDP, where they are d
 on-demand to clients.  Thus, an Artcast source can be written using virtually any language or
 library that supports standard networking protocols.
 
-Sources may generate at any time interval that is appropriate, from sub-second to days.
+Using JSON, sources can generate data of arbitrary complexity, although Artcasting favors
+simplicity - you will want your data source to work well with a wide variety of devices,
+including microcontrollers with minimal compute resources.
 
-To make it as easy as possible to write sources, we include a Python module with which many
+Sources may generate at any time interval that is appropriate, from seconds to days.
+
+To make them as easy as possible to write, we include a Python module with which many
 sources can be written in a few lines of code.
 
+Server
+------
+
+The Artcast server is an HTTP server written in Python using the Tornado web framework.
+
+
+Clients
+-------
