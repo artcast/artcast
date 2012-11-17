@@ -75,7 +75,7 @@ To install the Artcast server, you will need the following:
 Once you've installed the required modules, preferably using the package manager for your system, you
 can get the server source code and run it:
 
-  $ git clone git://github.com/artcast/artcast.git
-  $ cd artcast/server
-  $ python server.py
+    $ git clone git://github.com/artcast/artcast.git
+    $ cd artcast/server
+    $ python server.py
 
