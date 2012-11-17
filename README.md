@@ -50,7 +50,7 @@ large numbers of clients make long-running requests.
 Note that when a client makes an HTTP request to the Artcast server, the server doesn't respond
 immediately with the current value for that Artcast.  Rather, the server holds the connection
 open and only responds when the value *changes*.  This style of communication is widely known
-as "long polling" or [Comet](http://en.wikipedia.org/wiki/Comet_(programming) ).  We chose this
+as "long polling" or [Comet](http://en.wikipedia.org/wiki/Comet_(programming)).  We chose this
 approach to pushing data from the server over more sophisticated technologies (multicasting, websockets)
 because it can be easily implemented by even the most resource-constrained clients, avoids
 firewall and network configuration issues, and is close to optimal in terms of network bandwidth.
