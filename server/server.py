@@ -16,8 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Artcast.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 import functools
 import json
+import logging
+import logging.handlers
 import os
 import socket
 import struct
@@ -96,9 +99,26 @@ def udp_source(group, port, verbose):
       sys.stderr.write("recv %s : %s\n" % (key, data))
     tornado.ioloop.IOLoop.instance().add_callback(functools.partial(artcast_handler.message, key, data))
 
+def combined_log_format(handler):
+  logging.getLogger().info(
+    "{remote_ip} - {user} {timestamp} \"{method} {path} {version}\" {status} - \"{referer}\" \"{user_agent}\"".format(
+      remote_ip = handler.request.remote_ip,
+      user = handler.current_user if handler.current_user is not None else "-",
+      timestamp = datetime.datetime.utcnow().strftime("[%d/%b/%Y:%H:%M:%S +0000]"),
+      method = handler.request.method,
+      path = handler.request.path,
+      version = handler.request.version,
+      status = handler.get_status(),
+      referer = handler.request.headers["Referer"],
+      user_agent = handler.request.headers["User-Agent"]
+      ))
+
 if __name__ == "__main__":
   import optparse
   parser = optparse.OptionParser()
+  parser.add_option("--access-log", default=None, help="Access log file.  Default: %default")
+  parser.add_option("--access-log-size", type="int", default=10000000, help="Maximum access log file size in bytes.  Default: %default")
+  parser.add_option("--access-log-count", type="int", default=100, help="Maximum number of access log files.  Default: %default")
   parser.add_option("--client-port", type="int", default=8888, help="Client request input port.  Default: %default")
   parser.add_option("--daemonize", default=False, action="store_true", help="Daemonize the server.")
   parser.add_option("--logfile", default=None, help="Log file.  Default: %default")
@@ -119,6 +139,13 @@ if __name__ == "__main__":
     context = daemon.DaemonContext(stdout=log, stderr=log,  working_directory='.')
     context.open()
 
+  logging.getLogger().setLevel(logging.INFO)
+  logging.getLogger().addHandler(logging.StreamHandler())
+
+  if options.access_log is not None:
+    logging.getLogger().handlers = []
+    logging.getLogger().addHandler(logging.handlers.RotatingFileHandler(options.access_log, "a", options.access_log_size, options.access_log_count))
+
   udp_thread = threading.Thread(target=udp_source, kwargs={"group" : options.source_group, "port" : options.source_port, "verbose" : options.verbose})
   udp_thread.daemon = True
   udp_thread.start()
@@ -127,9 +154,9 @@ if __name__ == "__main__":
     [
     (r"/artcasts/(.*)", artcast_handler)
     ],
-    debug = True,
     static_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "content"),
-    static_url_prefix = "/content/"
+    static_url_prefix = "/content/",
+    log_function = combined_log_format
     )
 
   server = tornado.httpserver.HTTPServer(application)
