@@ -42,19 +42,31 @@ Server
 ------
 
 The Artcast server is an HTTP server written in Python using the Tornado web framework.
+The server aggregates the values received from Artcast sources, distributing the values
+to waiting clients.  We chose to implement the server using Tornado because its asynchronous
+design should be a good fit for the typical, highly-concurrent Artcast environment, where
+large numbers of clients make long-running requests.
 
+Note that when a client makes an HTTP request to the Artcast server, the server doesn't respond
+immediately with the current value for that Artcast.  Rather, the server holds the connection
+open and only responds when the value *changes*.  This style of communication is widely known
+as "long polling" or [Comet](http://en.wikipedia.org/wiki/Comet_(programming)).  We chose this
+approach to pushing data from the server over more sophisticated technologies (multicasting, websockets)
+because it can be easily implemented by even the most resource-constrained clients, avoids
+firewall and network configuration issues, and is close to optimal in terms of network bandwidth.
 
 Clients
 -------
 
 An Artcast client is any device or program that can make an HTTP request of the server
-and display / render / interpret the resulting value.  A client requests the next available
+and display / render / interpret the resulting value.  We envision that many Artcast clients will
+be small microcontrollers such as Arduino, Raspberry Pi, or similar.  A client requests the next available
 value from an Artcast source by performing an HTTP GET request
 to the URL http://[server]/artcasts/[key] ... a response to the request is returned by the server as soon
 as a datum that matches [key] is received from an Artcast source.  Once a client has
 received the datum it can make a request for the next value.  Thus, Artcast clients use
 long-polling to receive Artcast values as soon as they're available with a minimum of
-latency and network traffic
+latency and network traffic.
 
 As with sources, clients can be written with any language or
 framework, or use existing platforms such as web browsers.
@@ -69,7 +81,7 @@ To install the Artcast server, you will need the following:
 * Python-Daemon - <http://pypi.python.org/pypi/python-daemon/>
 
 Once you've installed the required modules, preferably using the package manager for your system, you
-can get the server source code and run it:
+can obtain the server source code and run it:
 
     $ git clone git://github.com/artcast/artcast.git
     $ cd artcast/server
@@ -84,8 +96,8 @@ supports Javascript, open <http://localhost:8888/artcasts/test/tick>.  You will 
 Note that there isn't a value yet because there isn't a running Artcast source to provide values for the
 "test/tick" key.  Leave the browser window open while you start the test source that's included with the
 Artcast server.  Note that the included sources are written in Python, and have a dependency on a Python
-module that we've written to handle the repetitive details of creating a source.  You'll need to set your
-PYTHONPATH so the sources can find it.  In a separate shell window:
+module that handles the repetitive details of creating a source.  You'll need to set your
+PYTHONPATH so the source scripts can find it.  In a separate shell window:
 
     $ cd artcast/sources
     $ export PYTHONPATH=../packages
@@ -93,7 +105,7 @@ PYTHONPATH so the sources can find it.  In a separate shell window:
 
 Now look at the browser window you opened.  You'll see that there's a value for the test/tick Artcast, and 
 the value is changing.  The test/tick Artcast is simply a number that counts up from 0, changing once per second.
-This isn't very interesting of course, but it's useful for debugging.  Let's try a different Artcast ...
+This isn't very interesting, but it's useful for testing and debugging.  Let's try a different Artcast ...
 open <http://localhost:8888/artcasts/test/now>, and you will see the current GMT time, also changing once per second.
 
 
