@@ -16,11 +16,7 @@ Any device that can issue an HTTP request can receive data from an Artcast serve
 Design
 ======
 
-There are three components in an Artcast system:
-
-* Sources
-* Server
-* Clients
+There are three components in an Artcast system: Sources, Server, and Clients:
 
 Sources
 -------
@@ -96,6 +92,8 @@ PYTHONPATH so the sources can find it.  In a separate shell window:
     $ python test-sources.py
 
 Now look at the browser window you opened.  You'll see that there's a value for the test/tick Artcast, and 
-the value is changing.  The test/tick artcast is simply a number that counts up from 0, changing once per second.
-The test/tick artcast isn't very interesting, but it's useful for debugging.  Let's try a different Artcast.
-Open <http://localhost:8888/artcasts/test/now>, and you will see the current GMT time, also changing once per second.
+the value is changing.  The test/tick Artcast is simply a number that counts up from 0, changing once per second.
+This isn't very interesting of course, but it's useful for debugging.  Let's try a different Artcast ...
+open <http://localhost:8888/artcasts/test/now>, and you will see the current GMT time, also changing once per second.
+
+
