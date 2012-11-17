@@ -11,7 +11,7 @@ that is dedicated to the task of delivering time varying data for use in:
 * Whatever you dream up!
 
 Artcast is designed to deliver data in a way that is simple, efficient, and low-latency.
-Any device that can issue an HTTP request can get data from an Artcast server.
+Any device that can issue an HTTP request can receive data from an Artcast server.
 
 Design
 ======
@@ -36,7 +36,8 @@ Using JSON, sources can generate data of arbitrary complexity, although Artcasti
 simplicity - you will want your data source to work well with a wide variety of devices,
 including microcontrollers with minimal compute resources.
 
-Sources may generate at any time interval that is appropriate, from seconds to days.
+Sources may generate dadta at any time interval that is appropriate, from fractions of a
+second to years.
 
 To make them as easy as possible to write, we include a Python module with which many
 sources can be written in a few lines of code.
@@ -45,13 +46,36 @@ Server
 ------
 
 The Artcast server is an HTTP server written in Python using the Tornado web framework.
-A client requests the next value from an Artcast source by performing an HTTP GET request
-to the URL /artcasts/key.  A response to the request is returned by the server as soon
-as a datum with a matching key is received from an Artcast source.  Once a client has
-received the datum it can make a request for the next value.  Thus, Artcast clients use
-long-polling to receive Artcast values as soon as they're available with a minimum of
-latency and network traffic.
+
 
 Clients
 -------
+
+An Artcast client is any device or program that can make an HTTP request of the server
+and display / render / interpret the resulting value.  A client requests the next available
+value from an Artcast source by performing an HTTP GET request
+to the URL http://[server]/artcasts/[key] ... a response to the request is returned by the server as soon
+as a datum that matches [key] is received from an Artcast source.  Once a client has
+received the datum it can make a request for the next value.  Thus, Artcast clients use
+long-polling to receive Artcast values as soon as they're available with a minimum of
+latency and network traffic
+
+As with sources, clients can be written with any language or
+framework, or use existing platforms such as web browsers.
+
+Installation
+============
+
+To install the Artcast server, you will need the following:
+
+* Python 2.6 or greater - <http://www.python.org>
+* Tornado 2.4 web server - <http://www.tornadoweb.org>
+* Python-Daemon - <http://pypi.python.org/pypi/python-daemon/>
+
+Once you've installed the required modules, preferably using the package manager for your system, you
+can get the server source code and run it:
+
+$ git clone git://github.com/artcast/artcast.git
+$ cd artcast/server
+$ python server.py
 
