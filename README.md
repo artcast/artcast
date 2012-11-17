@@ -32,7 +32,7 @@ Using JSON, sources can generate data of arbitrary complexity, although Artcasti
 simplicity - you will want your data source to work well with a wide variety of devices,
 including microcontrollers with minimal compute resources.
 
-Sources may generate dadta at any time interval that is appropriate, from fractions of a
+Sources may generate data at any time interval that is appropriate, from fractions of a
 second to years.
 
 To make them as easy as possible to write, we include a Python module with which many
