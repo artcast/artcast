@@ -79,3 +79,22 @@ can get the server source code and run it:
     $ cd artcast/server
     $ python server.py
 
+At this point, the server is running and waiting for requests on port 8888.  With a web browser that
+supports Javascript, open <http://localhost:8888/artcasts/test/tick>.  You will see a plain web page that reads:
+
+    Artcast: test/tick
+    Value: 
+
+Note that there isn't a value yet because there isn't a running Artcast source to provide values for the
+"test/tick" key.  Leave the browser window open while you start the test source that's included with the
+Artcast server.  Note that the included sources are written in Python, and have a dependency on a Python
+module that we've written to handle the repetitive details of creating a source.  So you'll need to set your
+PYTHONPATH so the sources can find the artcast.source module.  In a separate shell window:
+
+    $ cd artcast/sources
+    $ export PYTHONPATH=../packages
+    $ python test-sources.py
+
+Now look at the browser window you opened.  You'll see that now there's a value for the test/tick Artcast, and 
+the value is changing.  The test/tick artcast is simply a number that counts up from 0, changing once per second.
+
