@@ -28,7 +28,7 @@
               $.each(artcasts, function(index, data)
               {
                 var row = $("<tr>").appendTo($("#artcasts"));
-                row.append($("<td>").text(data.key));
+                row.append($("<td>").append($("<a>").attr("href", "/artcasts/" + data.key).text(data.key)));
                 row.append($("<td>").text(data.description));
                 row.append($("<td>").text(data.provenance));
               });
