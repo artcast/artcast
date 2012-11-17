@@ -16,23 +16,23 @@
 # You should have received a copy of the GNU General Public License
 # along with Artcast.  If not, see <http://www.gnu.org/licenses/>.
 
-import artcast.source
 import datetime
 import time
 
-def tick():
+def tick(context):
   value = 0
   while True:
-    artcast.source.send("test/tick", value)
+    context.send(value)
     value += 1
     time.sleep(1.0)
 
-def now():
+def now(context):
   while True:
-    artcast.source.send("test/now", datetime.datetime.utcnow().isoformat())
+    context.send(datetime.datetime.utcnow().isoformat())
     time.sleep(1.0)
 
 if __name__ == "__main__":
-  artcast.source.add(tick)
-  artcast.source.add(now)
+  import artcast.source
+  artcast.source.add(tick, key="test/tick", description="Monotonically increasing integer.", provenance=None)
+  artcast.source.add(now, key="test/now", description="ISO-8601 timestamp.", provenance="Local computer clock.")
   artcast.source.run()

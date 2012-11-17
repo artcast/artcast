@@ -24,36 +24,70 @@ import sys
 import threading
 import time
 
-sock = None
 options = None
 arguments = None
-threads = []
-
-def add(target):
-  threads.append(threading.Thread(target=target))
-  threads[-1].daemon = True
-
-def send(key, value):
-  if options.verbose:
-    sys.stderr.write("send %s : %s\n" % (key, value))
-  sock.sendto(json.dumps((key, value)), (options.group, options.port))
-
-def run():
+def parse():
   global options, arguments
   parser = optparse.OptionParser()
   parser.add_option("--daemonize", default=False, action="store_true", help="Daemonize the process.")
+  parser.add_option("--data-port", type="int", default=5007, help="Multicast port for sending registration messages.  Default: %default")
   parser.add_option("--group", default="224.1.1.1", help="Multicast group for sending source messages.  Default: %default")
   parser.add_option("--logfile", default=None, help="Log file.  Default: %default")
   parser.add_option("--pidfile", default=None, help="PID file.  Default: %default")
-  parser.add_option("--port", type="int", default=5007, help="Multicast port for sending source messages.  Default: %default")
-  parser.add_option("--uid", type="int", default=None, help="Drop privileges to uid.  Default: %default")
+  parser.add_option("--registration-port", type="int", default=5008, help="Multicast port for sending data messages.  Default: %default")
   parser.add_option("--ttl", type="int", default=1, help="Multicast TTL.  Default: %default")
+  parser.add_option("--uid", type="int", default=None, help="Drop privileges to uid.  Default: %default")
   parser.add_option("--verbose", default=False, action="store_true",  help="Enable debugging output.")
   options, arguments = parser.parse_args()
 
   if options.verbose:
     for key in sorted(options.__dict__.keys()):
       sys.stderr.write("%s : %s\n" % (key, options.__dict__[key]))
+
+registration_socket = None
+def register(key, description, provenance):
+  global registration_socket
+  if registration_socket is None:
+    registration_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    registration_socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, options.ttl)
+  if options.verbose:
+    sys.stderr.write("register %s : %s %s\n" % (key, description, provenance))
+  registration_socket.sendto(json.dumps((key, {"description" : description, "provenance" : provenance})), (options.group, options.registration_port))
+
+value_socket = None
+def send(key, value):
+  global value_socket
+  if value_socket is None:
+    value_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    value_socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, options.ttl)
+  if options.verbose:
+    sys.stderr.write("send %s : %s\n" % (key, value))
+  value_socket.sendto(json.dumps((key, value)), (options.group, options.data_port))
+global_send = send
+
+def register_source(key, description, provenance):
+  while True:
+    register(key, description, provenance)
+    time.sleep(30.0)
+
+class context:
+  def __init__(self, key):
+    self.key = key
+
+  def send(self, value):
+    global_send(self.key, value)
+
+register_threads = []
+data_threads = []
+def add(target, key, description, provenance):
+  register_threads.append(threading.Thread(target=register_source, kwargs={"key" : key, "description" : description, "provenance" : provenance}))
+  register_threads[-1].daemon = True
+
+  data_threads.append(threading.Thread(target=target, args=[context(key=key)]))
+  data_threads[-1].daemon = True
+
+def run():
+  parse()
 
   if options.daemonize:
     import daemon
@@ -64,11 +98,10 @@ def run():
   if options.uid is not None:
     os.setuid(options.uid)
 
-  global sock
-  sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-  sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, options.ttl)
+  for thread in register_threads:
+    thread.start()
 
-  for thread in threads:
+  for thread in data_threads:
     thread.start()
 
   if options.pidfile:
@@ -76,7 +109,7 @@ def run():
       pidfile.write(str(os.getpid()))
 
   try:
-    for thread in threads:
+    for thread in data_threads:
       thread.join()
   except KeyboardInterrupt:
     pass

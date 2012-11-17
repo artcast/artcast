@@ -50,6 +50,18 @@ class handler(tornado.web.RequestHandler):
           return server_type
     raise tornado.web.HTTPError(406, "Accepted MIME types are: %s" % server_types)
 
+sources = {}
+class artcasts_handler(handler):
+  """Handles each request for the list of available artcasts."""
+  def get(self):
+    self.accepted = self.accept("application/json", "text/html")
+    self.set_header("Content-Type", self.accepted)
+    if self.accepted == "text/html":
+      self.render("artcasts.html")
+    elif self.accepted == "application/json":
+      result = sorted(sources.values(), key=lambda x: x["key"])
+      self.write(json.dumps(result))
+
 class artcast_handler(handler):
   """Handles each request for an artcast."""
   callbacks = set()
@@ -82,7 +94,25 @@ class artcast_handler(handler):
     self.set_header("Content-Type", self.accepted)
     self.finish()
 
-def udp_source(group, port, verbose):
+def register_source(group, port, verbose):
+  """Listens for source registration messages."""
+  sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+  sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+  try:
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+  except:
+    pass
+  sock.bind(("", port))
+  mreq = struct.pack("4sl", socket.inet_aton(group), socket.INADDR_ANY)
+  sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+  while True:
+    key, data = json.loads(sock.recv(4096))
+    if options.verbose:
+      sys.stderr.write("register %s : %s\n" % (key, data))
+    data["key"] = key
+    sources[key] = data
+
+def receive_data(group, port, verbose):
   """Listens for new artcast values."""
   sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
   sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -109,22 +139,24 @@ def combined_log_format(handler):
       path = handler.request.path,
       version = handler.request.version,
       status = handler.get_status(),
-      referer = handler.request.headers["Referer"],
-      user_agent = handler.request.headers["User-Agent"]
+      referer = handler.request.headers["Referer"] if "Referer" in handler.request.headers else "-",
+      user_agent = handler.request.headers["User-Agent"] if "User-Agent" in handler.request.headers else "-"
       ))
 
 if __name__ == "__main__":
   import optparse
   parser = optparse.OptionParser()
   parser.add_option("--access-log", default=None, help="Access log file.  Default: %default")
-  parser.add_option("--access-log-size", type="int", default=10000000, help="Maximum access log file size in bytes.  Default: %default")
   parser.add_option("--access-log-count", type="int", default=100, help="Maximum number of access log files.  Default: %default")
+  parser.add_option("--access-log-size", type="int", default=10000000, help="Maximum access log file size in bytes.  Default: %default")
   parser.add_option("--client-port", type="int", default=8888, help="Client request input port.  Default: %default")
   parser.add_option("--daemonize", default=False, action="store_true", help="Daemonize the server.")
+  parser.add_option("--data-group", default="224.1.1.1", help="Multicast group for receiving data messages.  Default: %default")
+  parser.add_option("--data-port", type="int", default=5007, help="Multicast port for receiving data messages.  Default: %default")
   parser.add_option("--logfile", default=None, help="Log file.  Default: %default")
   parser.add_option("--pidfile", default=None, help="PID file.  Default: %default")
-  parser.add_option("--source-group", default="224.1.1.1", help="Multicast group for receiving source messages.  Default: %default")
-  parser.add_option("--source-port", type="int", default=5007, help="Multicast port for receiving source messages.  Default: %default")
+  parser.add_option("--register-group", default="224.1.1.1", help="Multicast group for receiving registration messages.  Default: %default")
+  parser.add_option("--register-port", type="int", default=5008, help="Multicast port for receiving registration messages.  Default: %default")
   parser.add_option("--uid", type="int", default=None, help="Drop privileges to uid.  Default: %default")
   parser.add_option("--verbose", default=False, action="store_true",  help="Enable debugging output.")
   options, arguments = parser.parse_args()
@@ -146,12 +178,17 @@ if __name__ == "__main__":
     logging.getLogger().handlers = []
     logging.getLogger().addHandler(logging.handlers.RotatingFileHandler(options.access_log, "a", options.access_log_size, options.access_log_count))
 
-  udp_thread = threading.Thread(target=udp_source, kwargs={"group" : options.source_group, "port" : options.source_port, "verbose" : options.verbose})
-  udp_thread.daemon = True
-  udp_thread.start()
+  data_thread = threading.Thread(target=receive_data, kwargs={"group" : options.data_group, "port" : options.data_port, "verbose" : options.verbose})
+  data_thread.daemon = True
+  data_thread.start()
+
+  registration_thread = threading.Thread(target=register_source, kwargs={"group" : options.register_group, "port" : options.register_port, "verbose" : options.verbose})
+  registration_thread.daemon = True
+  registration_thread.start()
 
   application = tornado.web.Application(
     [
+    (r"/artcasts", artcasts_handler),
     (r"/artcasts/(.*)", artcast_handler)
     ],
     static_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "content"),

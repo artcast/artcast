@@ -16,12 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Artcast.  If not, see <http://www.gnu.org/licenses/>.
 
-import artcast.source
-
-def send_arguments():
-  artcast.source.send(artcast.source.arguments[0], artcast.source.arguments[1])
-
 if __name__ == "__main__":
-  artcast.source.add(send_arguments)
-  artcast.source.run()
-
+  import artcast.source
+  artcast.source.parse()
+  artcast.source.register(key=artcast.source.arguments[0], description="Command-line value.", provenance=None)
+  artcast.source.send(key=artcast.source.arguments[0], value=artcast.source.arguments[1])

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Artcast</title>
+    <script type="text/javascript" src="{{ static_url("js/jquery-1.8.2.min.js") }}"></script>
+  </head>
+  <body>
+    <table>
+      <thead>
+        <tr><th>Key</th><th>Description</th><th>Provenance</th></tr>
+      </thead>
+      <tbody id="artcasts">
+      </tbody>
+    </table>
+    <script type="text/javascript">
+      $(document).ready(function()
+      {
+        function get_artcasts()
+        {
+          $.ajax(
+          {
+            accept: "application/json",
+            type: "GET",
+            url: "/artcasts",
+            success: function(artcasts)
+            {
+              $("#artcasts").empty();
+              $.each(artcasts, function(index, data)
+              {
+                var row = $("<tr>").appendTo($("#artcasts"));
+                row.append($("<td>").text(data.key));
+                row.append($("<td>").text(data.description));
+                row.append($("<td>").text(data.provenance));
+              });
+
+              window.setTimeout(get_artcasts, 5000);
+            },
+            error: function(request, status, reason_phrase)
+            {
+              $("#artcasts").empty();
+              window.setTimeout(get_artcasts, 5000);
+            }
+          });
+        }
+
+        get_artcasts();
+      });
+    </script>
+  </body>
+</html>
