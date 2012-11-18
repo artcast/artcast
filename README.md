@@ -37,6 +37,9 @@ second to years; however, note that clients only receive datums at the time that
 are sent by a source, so your source should transmit datums at a reasonable rate - every
 few minutes, for example - even if the data isn't changing that quickly.
 
+Sources may also optionally "register" extra information about an Artcast that provide
+additional details, including a human-readable description of the data, and its provenance.
+
 To make creating new sources as easy as possible, the Artcast server is distributed with a Python
 module with which a source can be written in just a few lines of code.
 
