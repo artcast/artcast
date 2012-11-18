@@ -59,8 +59,12 @@ class artcasts_handler(handler):
     if self.accepted == "text/html":
       self.render("artcasts.html")
     elif self.accepted == "application/json":
-      result = sorted(sources.values(), key=lambda x: x["key"])
-      self.write(json.dumps(result))
+      results = []
+      for key, source in sources.items():
+        results.append(source)
+        results[-1]["key"] = key
+      results = sorted(results, key=lambda x: x["key"])
+      self.write(json.dumps(results))
 
 class artcast_handler(handler):
   """Handles each request for an artcast."""
@@ -94,7 +98,7 @@ class artcast_handler(handler):
     self.set_header("Content-Type", self.accepted)
     self.finish()
 
-def register_source(group, port, verbose):
+def register_source(group, port):
   """Listens for source registration messages."""
   sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
   sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -107,12 +111,11 @@ def register_source(group, port, verbose):
   sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
   while True:
     key, data = json.loads(sock.recv(4096))
-    if options.verbose:
-      sys.stderr.write("register %s : %s\n" % (key, data))
-    data["key"] = key
-    sources[key] = data
+    if key not in sources:
+      sources[key] = {}
+    sources[key].update(data)
 
-def receive_data(group, port, verbose):
+def receive_data(group, port):
   """Listens for new artcast values."""
   sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
   sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -125,8 +128,8 @@ def receive_data(group, port, verbose):
   sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
   while True:
     key, data = json.loads(sock.recv(4096))
-    if options.verbose:
-      sys.stderr.write("recv %s : %s\n" % (key, data))
+    if key not in sources:
+      sources[key] = {}
     tornado.ioloop.IOLoop.instance().add_callback(functools.partial(artcast_handler.message, key, data))
 
 def combined_log_format(handler):
@@ -177,11 +180,11 @@ if __name__ == "__main__":
     logging.getLogger().handlers = []
     logging.getLogger().addHandler(logging.handlers.RotatingFileHandler(options.access_log, "a", options.access_log_size, options.access_log_count))
 
-  data_thread = threading.Thread(target=receive_data, kwargs={"group" : options.data_group, "port" : options.data_port, "verbose" : options.verbose})
+  data_thread = threading.Thread(target=receive_data, kwargs={"group" : options.data_group, "port" : options.data_port})
   data_thread.daemon = True
   data_thread.start()
 
-  registration_thread = threading.Thread(target=register_source, kwargs={"group" : options.register_group, "port" : options.register_port, "verbose" : options.verbose})
+  registration_thread = threading.Thread(target=register_source, kwargs={"group" : options.register_group, "port" : options.register_port})
   registration_thread.daemon = True
   registration_thread.start()
 

@@ -19,5 +19,5 @@
 if __name__ == "__main__":
   import artcast.source
   artcast.source.parse()
-  artcast.source.register(key=artcast.source.arguments[0], description="Command-line value.", provenance=None)
+  artcast.source.register(key=artcast.source.arguments[0], description="Command-line source.", provenance="Command line value.")
   artcast.source.send(key=artcast.source.arguments[0], value=artcast.source.arguments[1])
