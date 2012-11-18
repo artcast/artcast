@@ -116,4 +116,41 @@ the value is changing.  The test/tick Artcast is simply a number that counts up 
 This isn't very interesting, but it's useful for testing and debugging.  Let's try a different Artcast ...
 open <http://localhost:8888/artcasts/test/now>, and you will see the current GMT time, also changing once per second.
 
+Production
+----------
+
+Although the default behavior for the Artcast server is good for development and testing, running the
+server in a real production environment will require some changes, all of which are made via command-line
+options when starting the server.  Use the --help option to display a list of all options, including:
+
+### Logging
+
+By default, the Artcast server logs each client request in Apache / NCSA Extended Log Format to stderr.
+You can redirect the log output to a file using the --access-log=[file] option.  When using --access-log,
+Artcast will automatically limit the size of a log file to 10 MB, rotating log files up to a maximum of 100
+files.  You can control these parameters with the --access-log-size=[bytes] and --access-log-count=[count] options.
+
+### HTTP Port
+
+As you saw earlier, Artcast server listens by default to port 8888, making it easy to run without root access.
+To listen to a more common port, such as 80, use the --client-port=[port] option.
+
+Of course, you will have to start Artcast server as root to listen to low-numbered ports less than 1024.  Since
+running a service as root is a serious security risk, you can use the --uid=[user id] option to instruct
+Artcast server to drop its root privileges once the HTTP socket has been created.
+
+### Init Scripts
+
+Many platforms use init scripts to start services that should run in the background at startup.
+To daemonize the Artcast server (run it in the background so init scripts don't block), pass the --daemonize
+option at startup.
+
+Further, many init scripts use "pidfiles" to keep track of running process ids so the process can be
+queried or shutdown cleanly.  To automatically generate a pidfile at startup and delete it at shutdown,
+use the --pidfile=[file path] option.
+
+### UDP Ports
+
+Artcast server listens for data from Artcast sources using a pair of multicast UDP groups, which are configurable
+with the --data-group=[group], --data-port=[port], --register-group=[group], and --register-port=[port] options.
 
