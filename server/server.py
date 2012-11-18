@@ -167,8 +167,7 @@ if __name__ == "__main__":
 
   if options.daemonize:
     import daemon
-    log = open(options.logfile, 'a+') if options.logfile is not None else sys.stderr
-    context = daemon.DaemonContext(stdout=log, stderr=log,  working_directory='.')
+    context = daemon.DaemonContext()
     context.open()
 
   logging.getLogger().setLevel(logging.INFO)
