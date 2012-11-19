@@ -146,6 +146,9 @@ def combined_log_format(handler):
       user_agent = handler.request.headers["User-Agent"] if "User-Agent" in handler.request.headers else "-"
       ))
 
+def handle_callback_exception(callback):
+  logging.getLogger("artcast.error").error("Exception in callback %r", callback, exc_info=True)
+
 if __name__ == "__main__":
   import optparse
   parser = optparse.OptionParser()
@@ -156,6 +159,9 @@ if __name__ == "__main__":
   parser.add_option("--daemonize", default=False, action="store_true", help="Daemonize the server.")
   parser.add_option("--data-group", default="224.1.1.1", help="Multicast group for receiving data messages.  Default: %default")
   parser.add_option("--data-port", type="int", default=5007, help="Multicast port for receiving data messages.  Default: %default")
+  parser.add_option("--error-log", default=None, help="Error log file.  Default: %default")
+  parser.add_option("--error-log-count", type="int", default=100, help="Maximum number of error log files.  Default: %default")
+  parser.add_option("--error-log-size", type="int", default=10000000, help="Maximum error log file size in bytes.  Default: %default")
   parser.add_option("--logfile", default=None, help="Log file.  Default: %default")
   parser.add_option("--pidfile", default=None, help="PID file.  Default: %default")
   parser.add_option("--register-group", default="224.1.1.1", help="Multicast group for receiving registration messages.  Default: %default")
@@ -173,12 +179,26 @@ if __name__ == "__main__":
     context = daemon.DaemonContext()
     context.open()
 
-  logging.getLogger().setLevel(logging.INFO)
-  logging.getLogger().addHandler(logging.StreamHandler())
+  # Setup logging ...
+  access_log = logging.getLogger()
+  access_log.propagate = False
+  access_log.setLevel(logging.INFO)
+  access_log.handlers = []
+  access_log.addHandler(logging.StreamHandler())
 
   if options.access_log is not None:
-    logging.getLogger().handlers = []
-    logging.getLogger().addHandler(logging.handlers.RotatingFileHandler(options.access_log, "a", options.access_log_size, options.access_log_count))
+    access_log.handlers = []
+    access_log.addHandler(logging.handlers.RotatingFileHandler(options.access_log, "a", options.access_log_size, options.access_log_count))
+
+  error_log = logging.getLogger("artcast.error")
+  error_log.propagate = False
+  error_log.setLevel(logging.INFO)
+  error_log.handlers = []
+  error_log.addHandler(logging.StreamHandler())
+
+  if options.error_log is not None:
+    error_log.handlers = []
+    error_log.addHandler(logging.handlers.RotatingFileHandler(options.error_log, "a", options.error_log_size, options.error_log_count))
 
   data_thread = threading.Thread(target=receive_data, kwargs={"group" : options.data_group, "port" : options.data_port})
   data_thread.daemon = True
@@ -208,7 +228,9 @@ if __name__ == "__main__":
       with open(options.pidfile, "wb") as pidfile:
         pidfile.write(str(os.getpid()))
 
-    tornado.ioloop.IOLoop.instance().start()
+    loop = tornado.ioloop.IOLoop.instance()
+    loop.handle_callback_exception = handle_callback_exception
+    loop.start()
   finally:
     if options.pidfile:
       os.unlink(options.pidfile)
