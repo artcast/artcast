@@ -32,7 +32,6 @@ def parse():
   parser.add_option("--daemonize", default=False, action="store_true", help="Daemonize the process.")
   parser.add_option("--data-port", type="int", default=5007, help="Multicast port for sending registration messages.  Default: %default")
   parser.add_option("--group", default="224.1.1.1", help="Multicast group for sending source messages.  Default: %default")
-  parser.add_option("--logfile", default=None, help="Log file.  Default: %default")
   parser.add_option("--pidfile", default=None, help="PID file.  Default: %default")
   parser.add_option("--registration-port", type="int", default=5008, help="Multicast port for sending data messages.  Default: %default")
   parser.add_option("--ttl", type="int", default=1, help="Multicast TTL.  Default: %default")
@@ -91,8 +90,7 @@ def run():
 
   if options.daemonize:
     import daemon
-    log = open(options.logfile, 'a+') if options.logfile is not None else sys.stderr
-    context = daemon.DaemonContext(stdout=log, stderr=log,  working_directory='.')
+    context = daemon.DaemonContext()
     context.open()
 
   if options.uid is not None:

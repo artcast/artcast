@@ -162,7 +162,6 @@ if __name__ == "__main__":
   parser.add_option("--error-log", default=None, help="Error log file.  Default: %default")
   parser.add_option("--error-log-count", type="int", default=100, help="Maximum number of error log files.  Default: %default")
   parser.add_option("--error-log-size", type="int", default=10000000, help="Maximum error log file size in bytes.  Default: %default")
-  parser.add_option("--logfile", default=None, help="Log file.  Default: %default")
   parser.add_option("--pidfile", default=None, help="PID file.  Default: %default")
   parser.add_option("--register-group", default="224.1.1.1", help="Multicast group for receiving registration messages.  Default: %default")
   parser.add_option("--register-port", type="int", default=5008, help="Multicast port for receiving registration messages.  Default: %default")
