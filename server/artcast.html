@@ -3,12 +3,15 @@
   <head>
     <title>{{key}} | Artcast</title>
     <script type="text/javascript" src="{{ static_url("js/jquery-1.8.2.min.js") }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ static_url("style/artcast.css") }}">
   </head>
   <body>
-    <pre>
-Artcast: {{key}}
-Value: <span id="value"></span>
-    </pre>
+    <dl>
+      <dt>Artcast</dt>
+      <dd id="key">{{key}}</dd>
+      <dt>Value</dt>
+      <dd id="value"></dd>
+    </dl>
     <script type="text/javascript">
       $(document).ready(function()
       {
