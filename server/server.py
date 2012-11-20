@@ -31,6 +31,13 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
+def template_path(*paths):
+  templates = os.path.join(os.path.abspath(os.path.dirname(__file__)), "templates")
+  for path in paths:
+    candidate = os.path.join(templates, path)
+    if os.path.exists(candidate):
+      return candidate
+
 class handler(tornado.web.RequestHandler):
   """Add some useful functionality common to all handlers."""
   def accept(self, *server_types):
@@ -57,7 +64,7 @@ class artcasts_handler(handler):
     self.accepted = self.accept("application/json", "text/html")
     self.set_header("Content-Type", self.accepted)
     if self.accepted == "text/html":
-      self.render("artcasts.html")
+      self.render(template_path("artcasts.html"))
     elif self.accepted == "application/json":
       results = []
       for key, source in sources.items():
@@ -80,7 +87,7 @@ class artcast_handler(handler):
     """Called when a client requests an artcast."""
     self.accepted = self.accept("text/plain", "application/json", "text/html")
     if self.accepted == "text/html":
-      self.render("artcast.html", key=key)
+      self.render(template_path("%s.html" % key, "artcast.html"), key=key)
       return
 
     self.key = key
