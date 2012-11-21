@@ -103,6 +103,7 @@ class artcast_handler(handler):
     elif self.accepted == "text/plain":
       self.write(str(data))
     self.set_header("Content-Type", self.accepted)
+    self.set_header("Access-Control-Allow-Origin", artcast_handler.access_control_allow_origin)
     self.finish()
 
 def register_source(group, port):
@@ -159,6 +160,7 @@ def handle_callback_exception(callback):
 if __name__ == "__main__":
   import optparse
   parser = optparse.OptionParser()
+  parser.add_option("--access-control-allow-origin", default="*", help="Cross origin resource sharing control.  Default: %default")
   parser.add_option("--access-log", default=None, help="Access log file.  Default: %default")
   parser.add_option("--access-log-count", type="int", default=100, help="Maximum number of access log files.  Default: %default")
   parser.add_option("--access-log-size", type="int", default=10000000, help="Maximum access log file size in bytes.  Default: %default")
@@ -179,6 +181,8 @@ if __name__ == "__main__":
   if options.verbose:
     for key in sorted(options.__dict__.keys()):
       sys.stderr.write("%s : %s\n" % (key, options.__dict__[key]))
+
+  artcast_handler.access_control_allow_origin = options.access_control_allow_origin
 
   if options.daemonize:
     import daemon
