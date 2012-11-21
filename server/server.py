@@ -42,7 +42,9 @@ class handler(tornado.web.RequestHandler):
   """Add some useful functionality common to all handlers."""
   def accept(self, *server_types):
     # First, sort the client's accepted MIME types in order of preference ...
-    client_types = [mime_type.split(";") for mime_type in self.request.headers["accept"].split(",")]
+    client_types = [("*/*", "q=1.0")]
+    if "accept" in self.request.headers:
+      client_types = [mime_type.split(";") for mime_type in self.request.headers["accept"].split(",")]
     client_types = [(type[0], float(type[1].split("=")[1]) if len(type) > 1 else 1.0) for type in client_types]
     client_types = sorted(client_types, key=lambda x: x[1], reverse=True)
 
