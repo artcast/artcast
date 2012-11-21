@@ -122,9 +122,9 @@ open <http://localhost:8888/artcasts/test/now>, and you will see the current GMT
 Production
 ----------
 
-Although the default behavior for the Artcast server is good for development and testing, running the
-server in a real production environment will require some changes, all of which are made via command-line
-options when starting the server.  Use the --help option to display a list of all options, including:
+Although the default behaviors for the Artcast server are good for development and testing, running the
+server in a real production environment will require changes, all of which are made via command-line
+options when starting the server.  Use the --help option to display a list of options, including:
 
 ### Logging
 
@@ -133,13 +133,16 @@ You can redirect the log output to a file using the --access-log=[file] option. 
 Artcast will automatically limit the size of a log file to 10 MB, rotating log files up to a maximum of 100
 files.  You can control these parameters with the --access-log-size=[bytes] and --access-log-count=[count] options.
 
+Similarly, internal server errors are logged in unstructured format to stderr, unless you use the --error-log=[file],
+--error-log-size=[bytes], and --error-log-count=[count] options.
+
 ### HTTP Port
 
 As you saw earlier, Artcast server listens by default to port 8888, making it easy to run without root access.
 To listen to a more common port, such as 80, use the --client-port=[port] option.
 
-Of course, you will have to start Artcast server as root to listen to low-numbered ports less than 1024.  Since
-running a service as root is a serious security risk, you can use the --uid=[user id] option to instruct
+Of course, you will have to start Artcast server as root to listen to low-numbered ports under 1024.  Since
+running a service as root is a serious security risk, you should use the --uid=[user id] option to instruct
 Artcast server to drop its root privileges once the HTTP socket has been created.
 
 ### Init Scripts
@@ -149,7 +152,7 @@ To daemonize the Artcast server (run it in the background so init scripts don't 
 option at startup.
 
 Further, many init scripts use "pidfiles" to keep track of running process ids so the process can be
-queried or shutdown cleanly.  To automatically generate a pidfile at startup and delete it at shutdown,
+queried and shutdown cleanly.  To automatically generate a pidfile at startup and delete it at shutdown,
 use the --pidfile=[file path] option.
 
 ### UDP Ports
