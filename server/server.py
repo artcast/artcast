@@ -220,8 +220,9 @@ if __name__ == "__main__":
 
   application = tornado.web.Application(
     [
-    (r"/artcasts", artcasts_handler),
-    (r"/artcasts/(.*)", artcast_handler)
+      ("/", tornado.web.RedirectHandler, {"url" : "/artcasts", "permanent":False}),
+      ("/artcasts", artcasts_handler),
+      ("/artcasts/(.*)", artcast_handler)
     ],
     static_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "content"),
     static_url_prefix = "/content/",
