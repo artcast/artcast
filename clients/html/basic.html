@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Basic HTML Artcast Client</title>
+    <script type="text/javascript" src="../../server/content/js/jquery-1.8.2.min.js"></script>
+  </head>
+  <body>
+    <dl>
+      <h1>Basic HTML Artcast Client</h1>
+      <p id="value"></p>
+    </dl>
+    <script type="text/javascript">
+      $(document).ready(function()
+      {
+        function get_value()
+        {
+          $.ajax(
+          {
+            accept: "application/json",
+            type: "GET",
+            url: "http://artcastproject.org/artcasts/test/tick",
+            success: function(data)
+            {
+              $("#value").text(data);
+              get_value();
+            },
+            error: function(request, status, reason_phrase)
+            {
+              $("#value").text("Error: " + reason_phrase);
+              window.setTimeout(get_value, 5000);
+            }
+          });
+        }
+
+        get_value();
+      });
+    </script>
+  </body>
+</html>
