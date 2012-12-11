@@ -32,9 +32,9 @@ import tornado.ioloop
 import tornado.web
 
 def template_path(*paths):
-  templates = os.path.join(os.path.abspath(os.path.dirname(__file__)), "templates")
+  directory = os.path.abspath(os.path.dirname(__file__))
   for path in paths:
-    candidate = os.path.join(templates, path)
+    candidate = os.path.join(directory, path)
     if os.path.exists(candidate):
       return candidate
 
@@ -89,7 +89,7 @@ class artcast_handler(handler):
     """Called when a client requests an artcast."""
     self.accepted = self.accept("text/plain", "application/json", "text/html")
     if self.accepted == "text/html":
-      self.render(template_path("%s.html" % key, "artcast.html"), key=key)
+      self.render(template_path("templates/%s.html" % key, "artcast.html"), key=key)
       return
 
     self.key = key
