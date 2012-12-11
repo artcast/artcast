@@ -13,6 +13,8 @@
       <dd id="key">{{key}}</dd>
       <dt>Value</dt>
       <dd id="value"></dd>
+      <dt>License</dt>
+      <dd id="license"></dd>
     </dl>
     <script type="text/javascript">
       $(document).ready(function()
@@ -24,9 +26,17 @@
             accept: "application/json",
             type: "GET",
             url: "/artcasts/{{key}}",
-            success: function(data)
+            success: function(data, status, request)
             {
               $("#value").text(data);
+              var link = request.getResponseHeader("Link");
+              if(link)
+              {
+                var uri = /<([^>]+)>/g.exec(link)[1];
+                var title = /title="([^"]+)"/g.exec(link)[1];
+                $("#license").empty();
+                $("<a>").attr("href", uri).text(title).appendTo("#license");
+              }
               get_value();
             },
             error: function(request, status, reason_phrase)

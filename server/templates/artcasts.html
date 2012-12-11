@@ -11,7 +11,7 @@
     <h1>Available Artcasts</h1>
     <table>
       <thead>
-        <tr><th>Key</th><th>Description</th><th>Provenance</th></tr>
+        <tr><th class="key">Key</th><th class="description">Description</th><th class="provenance">Provenance</th><th class="license">License</th></tr>
       </thead>
       <tbody id="artcasts">
       </tbody>
@@ -32,9 +32,13 @@
               $.each(artcasts, function(index, data)
               {
                 var row = $("<tr>").appendTo($("#artcasts"));
-                row.append($("<td>").append($("<a>").attr("href", "/artcasts/" + data.key).text(data.key)));
-                row.append($("<td>").text(data.description));
-                row.append($("<td>").text(data.provenance));
+                row.append($("<td class='key'>").append($("<a>").attr("href", "/artcasts/" + data.key).text(data.key)));
+                row.append($("<td class='description'>").text(data.description));
+                row.append($("<td class='provenance'>").text(data.provenance));
+
+                var cell = $("<td class='license'>").appendTo(row);
+                if(data.license)
+                  $("<a>").attr("href", data.license.uri).text(data.license.title).appendTo(cell);
               });
 
               window.setTimeout(get_artcasts, 5000);

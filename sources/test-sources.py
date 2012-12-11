@@ -33,6 +33,18 @@ def now(context):
 
 if __name__ == "__main__":
   import artcast.source
-  artcast.source.add(tick, key="test/tick", description="Monotonically increasing integer.", provenance="Local counter.")
-  artcast.source.add(now, key="test/now", description="Current UTC time in ISO-8601 format.", provenance="Python datetime.datetime.utcnow() function.")
+  artcast.source.add(
+    tick,
+    key="test/tick",
+    description="Monotonically increasing integer.",
+    provenance="Local counter.",
+    license={"uri" : "http://creativecommons.org/licenses/by-sa/3.0/", "title" : "CC BY-SA 3.0"}
+    )
+  artcast.source.add(
+    now,
+    key="test/now",
+    description="Current UTC time in ISO-8601 format.",
+    provenance="Python datetime.datetime.utcnow() function.",
+    license={"uri" : "http://creativecommons.org/licenses/by-sa/3.0/", "title" : "CC BY-SA 3.0"}
+    )
   artcast.source.run()

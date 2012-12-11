@@ -106,6 +106,10 @@ class artcast_handler(handler):
       self.write(str(data))
     self.set_header("Content-Type", self.accepted)
     self.set_header("Access-Control-Allow-Origin", artcast_handler.access_control_allow_origin)
+
+    if key in sources and "license" in sources[key] and sources[key]["license"] is not None:
+      self.set_header("Link", '<%s>; rel="license"; title="%s"' % (sources[key]["license"]["uri"], sources[key]["license"]["title"]))
+
     self.finish()
 
 def register_source(group, port):

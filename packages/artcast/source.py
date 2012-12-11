@@ -44,14 +44,14 @@ def parse():
       sys.stderr.write("%s : %s\n" % (key, options.__dict__[key]))
 
 registration_socket = None
-def register(key, description, provenance):
+def register(key, description, provenance, license):
   global registration_socket
   if registration_socket is None:
     registration_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     registration_socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, options.ttl)
   if options.verbose:
-    sys.stderr.write("register %s : %s %s\n" % (key, description, provenance))
-  registration_socket.sendto(json.dumps((key, {"description" : description, "provenance" : provenance})), (options.group, options.registration_port))
+    sys.stderr.write("register %s : %s %s %s\n" % (key, description, provenance, license))
+  registration_socket.sendto(json.dumps((key, {"description" : description, "provenance" : provenance, "license" : license})), (options.group, options.registration_port))
 
 value_socket = None
 def send(key, value):
@@ -64,9 +64,9 @@ def send(key, value):
   value_socket.sendto(json.dumps((key, value)), (options.group, options.data_port))
 global_send = send
 
-def register_source(key, description, provenance):
+def register_source(key, description, provenance, license):
   while True:
-    register(key, description, provenance)
+    register(key, description, provenance, license)
     time.sleep(30.0)
 
 class context:
@@ -78,8 +78,8 @@ class context:
 
 register_threads = []
 data_threads = []
-def add(target, key, description, provenance):
-  register_threads.append(threading.Thread(target=register_source, kwargs={"key" : key, "description" : description, "provenance" : provenance}))
+def add(target, key, description, provenance, license=None):
+  register_threads.append(threading.Thread(target=register_source, kwargs={"key" : key, "description" : description, "provenance" : provenance, "license" : license}))
   register_threads[-1].daemon = True
 
   data_threads.append(threading.Thread(target=target, args=[context(key=key)]))

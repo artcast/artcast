@@ -37,7 +37,8 @@ def add_source(offset, label):
     functools.partial(poverty_death, offset),
     key="poverty/death/%s" % label,
     description="Worldwide deaths due to extreme poverty since midnight, %s." % label,
-    provenance="Computed based on 10,500,000 deaths per year, as reported by everythreeseconds.net."
+    provenance="Computed based on 10,500,000 deaths per year, as reported by everythreeseconds.net.",
+    license={"uri" : "http://creativecommons.org/licenses/by-sa/3.0/", "title" : "CC BY-SA 3.0"}
     )
 
 if __name__ == "__main__":

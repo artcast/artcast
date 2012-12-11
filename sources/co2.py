@@ -52,7 +52,8 @@ if __name__ == "__main__":
     co2,
     key="co2/maunaloa",
     description="Weekly average CO2 at the Mauna Loa observatory, in PPM.",
-    provenance="Retrieved from NOAA at http://www.esrl.noaa.gov/gmd/webdata/ccgg/trends/rss.xml."
+    provenance="Retrieved from NOAA at http://www.esrl.noaa.gov/gmd/webdata/ccgg/trends/rss.xml.",
+    license={"uri" : "http://creativecommons.org/licenses/by-sa/3.0/", "title" : "CC BY-SA 3.0"}
     )
   artcast.source.run()
 

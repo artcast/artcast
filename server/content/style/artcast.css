@@ -40,6 +40,11 @@ dd
   text-shadow: 0 2px 4px #2A2A2A;
 }
 
+#license a
+{
+  font-size: 24px;
+}
+
 table
 {
   padding: 0 2em;
@@ -61,4 +66,9 @@ td
   font-size: 20px;
   padding: 5px 20px;
   text-shadow: 0 2px 4px #2A2A2A;
+}
+
+td.license
+{
+  font-size: 12px;
 }
